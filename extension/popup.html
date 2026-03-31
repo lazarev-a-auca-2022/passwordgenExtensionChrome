@@ -10,13 +10,36 @@
 
     <header>
       <span class="icon">&#128272;</span>
-      <h1>Password Generator</h1>
-      <span id="integrity-badge" class="badge loading">checking…</span>
+      <h1 data-i18n="title">Password Generator</h1>
+      <div class="header-actions">
+        <div class="lang-toggle">
+          <button class="lang-btn active" data-lang="en">EN</button>
+          <span class="lang-sep">|</span>
+          <button class="lang-btn" data-lang="ru">RU</button>
+        </div>
+        <div class="badge-row">
+          <span id="integrity-badge" class="badge loading"></span>
+          <span class="info-wrap">
+            <button class="info-btn" aria-label="About this check">?</button>
+            <div class="info-box left">
+              <strong data-i18n="integrityTitle"></strong>
+              <p data-i18n="integrityBody"></p>
+            </div>
+          </span>
+        </div>
+      </div>
     </header>
 
     <div class="mode-tabs">
-      <button class="tab active" data-mode="random">Random</button>
-      <button class="tab" data-mode="mnemonic">Mnemonic</button>
+      <button class="tab active" data-mode="random" data-i18n="tabRandom">Random</button>
+      <button class="tab" data-mode="mnemonic" data-i18n="tabMnemonic">Mnemonic</button>
+      <span class="info-wrap mnemonic-info">
+        <button class="info-btn" aria-label="About mnemonic passwords">?</button>
+        <div class="info-box right">
+          <strong data-i18n="mnemonicTitle"></strong>
+          <p data-i18n="mnemonicBody"></p>
+        </div>
+      </span>
     </div>
 
     <div class="output">
@@ -33,42 +56,42 @@
 
     <div id="random-controls">
       <div class="length-row">
-        <label for="length">Length</label>
+        <label for="length" data-i18n="lengthLabel">Length</label>
         <input type="range" id="length" min="4" max="64" value="16">
         <span id="length-value">16</span>
       </div>
       <div class="options">
         <label class="toggle">
           <input type="checkbox" id="uppercase" class="charset-toggle" checked>
-          <span>Uppercase (A–Z)</span>
+          <span data-i18n="uppercase">Uppercase (A–Z)</span>
         </label>
         <label class="toggle">
           <input type="checkbox" id="lowercase" class="charset-toggle" checked>
-          <span>Lowercase (a–z)</span>
+          <span data-i18n="lowercase">Lowercase (a–z)</span>
         </label>
         <label class="toggle">
           <input type="checkbox" id="numbers" class="charset-toggle" checked>
-          <span>Numbers (0–9)</span>
+          <span data-i18n="numbers">Numbers (0–9)</span>
         </label>
         <label class="toggle">
           <input type="checkbox" id="symbols" class="charset-toggle" checked>
-          <span>Symbols (!@#$…)</span>
+          <span data-i18n="symbols">Symbols (!@#$…)</span>
         </label>
         <label class="toggle full-width">
           <input type="checkbox" id="excludeAmbiguous">
-          <span>Exclude ambiguous chars</span>
+          <span data-i18n="excludeAmbiguous">Exclude ambiguous chars</span>
         </label>
       </div>
     </div>
 
     <div id="mnemonic-controls" class="hidden">
       <div class="length-row">
-        <label for="word-count">Words</label>
+        <label for="word-count" data-i18n="wordsLabel">Words</label>
         <input type="range" id="word-count" min="3" max="8" value="5">
         <span id="word-count-value">5</span>
       </div>
       <div class="separator-row">
-        <span class="sep-label">Separator</span>
+        <span class="sep-label" data-i18n="separatorLabel">Separator</span>
         <div class="sep-options">
           <label class="sep-opt"><input type="radio" name="separator" value="-" checked><span>-</span></label>
           <label class="sep-opt"><input type="radio" name="separator" value="."><span>.</span></label>
@@ -78,10 +101,11 @@
       </div>
     </div>
 
-    <button id="generate-btn" class="btn-primary">&#8635; Generate</button>
+    <button id="generate-btn" class="btn-primary" data-i18n="generate">&#8635; Generate</button>
 
   </div>
   <script src="wordlist.js"></script>
+  <script src="i18n.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>

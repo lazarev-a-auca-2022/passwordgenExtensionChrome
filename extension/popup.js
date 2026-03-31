@@ -5,11 +5,11 @@ const LOWERCASE = 'abcdefghijklmnopqrstuvwxyz';
 const NUMBERS   = '0123456789';
 const SYMBOLS   = '!@#$%^&*()-_=+[]{}|;:,.<>?';
 const AMBIGUOUS = new Set(['0', 'O', 'l', '1', 'I']);
-
-const STRENGTH_LABEL = ['', 'Weak', 'Fair', 'Strong', 'Very Strong'];
 const STRENGTH_CLASS = ['', 'weak', 'fair', 'strong', 'very-strong'];
 
-let mode = 'random';
+let mode                = 'random';
+let lastIntegrityResult = null;
+let lastStrengthScore   = 0;
 
 // ── Integrity check ───────────────────────────────────────────────────────────
 
@@ -24,7 +24,7 @@ function checkCryptoIntegrity() {
   }
 
   // Chi-square uniformity test: 2560 samples, 256 buckets, expected=10 each.
-  // df=255, threshold p<0.0001 ≈ 350. A tampered RNG will almost certainly exceed this.
+  // df=255, threshold p<0.0001 ≈ 350.
   const n = 2560;
   const sample = new Uint8Array(n);
   crypto.getRandomValues(sample);
@@ -35,17 +35,18 @@ function checkCryptoIntegrity() {
 
   return chi2 < 350
     ? { ok: true,  chi2: chi2.toFixed(1) }
-    : { ok: false, reason: `RNG failed uniformity test (χ²=${chi2.toFixed(0)})` };
+    : { ok: false, reason: `RNG failed uniformity test (\u03C7\u00B2=${chi2.toFixed(0)})` };
 }
 
 function renderIntegrityBadge(result) {
+  lastIntegrityResult = result;
   const badge = document.getElementById('integrity-badge');
   if (result.ok) {
-    badge.textContent = '● Verified';
+    badge.textContent = t('badgeVerified');
     badge.className   = 'badge ok';
-    badge.title       = `χ² = ${result.chi2}  (entropy check passed)`;
+    badge.title       = `\u03C7\u00B2 = ${result.chi2}`;
   } else {
-    badge.textContent = '⚠ Warning';
+    badge.textContent = t('badgeWarning');
     badge.className   = 'badge warn';
     badge.title       = result.reason;
   }
@@ -93,16 +94,16 @@ function jsGenerate(length, opts) {
 
 function jsScore(password) {
   if (!password) return 0;
-  let score = 0;
-  if (/[A-Z]/.test(password))        score++;
-  if (/[a-z]/.test(password))        score++;
-  if (/[0-9]/.test(password))        score++;
-  if (/[^A-Za-z0-9]/.test(password)) score++;
-  if (password.length >= 12)         score++;
-  if (password.length >= 20)         score++;
-  if (score <= 1) return 1;
-  if (score <= 3) return 2;
-  if (score <= 4) return 3;
+  let s = 0;
+  if (/[A-Z]/.test(password))        s++;
+  if (/[a-z]/.test(password))        s++;
+  if (/[0-9]/.test(password))        s++;
+  if (/[^A-Za-z0-9]/.test(password)) s++;
+  if (password.length >= 12)         s++;
+  if (password.length >= 20)         s++;
+  if (s <= 1) return 1;
+  if (s <= 3) return 2;
+  if (s <= 4) return 3;
   return 4;
 }
 
@@ -164,10 +165,15 @@ function getSeparator() {
   return document.querySelector('input[name="separator"]:checked')?.value ?? '-';
 }
 
+function getStrengthLabel(s) {
+  return [t('strengthWeak'), t('strengthFair'), t('strengthStrong'), t('strengthVeryStrong')][s - 1] ?? '';
+}
+
 function render(password, strengthScore) {
-  document.getElementById('password').value = password;
-  document.getElementById('strength-bar').className   = 'strength-bar ' + (STRENGTH_CLASS[strengthScore] ?? '');
-  document.getElementById('strength-label').textContent = STRENGTH_LABEL[strengthScore] ?? '';
+  lastStrengthScore = strengthScore;
+  document.getElementById('password').value             = password;
+  document.getElementById('strength-bar').className     = 'strength-bar ' + (STRENGTH_CLASS[strengthScore] ?? '');
+  document.getElementById('strength-label').textContent = getStrengthLabel(strengthScore);
 }
 
 function regenerate() {
@@ -182,18 +188,51 @@ function regenerate() {
   }
 }
 
+function rerenderDynamic() {
+  applyLang();
+  if (lastIntegrityResult) renderIntegrityBadge(lastIntegrityResult);
+  else document.getElementById('integrity-badge').textContent = t('badgeChecking');
+  document.getElementById('strength-label').textContent = getStrengthLabel(lastStrengthScore);
+  document.getElementById('copy-btn').textContent = t('copy');
+}
+
 // ── Bootstrap ─────────────────────────────────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', async () => {
   await loadWasm();
 
+  applyLang();
+  document.getElementById('integrity-badge').textContent = t('badgeChecking');
   renderIntegrityBadge(checkCryptoIntegrity());
+
+  // Language switcher
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      setLang(btn.dataset.lang);
+      rerenderDynamic();
+    });
+  });
+
+  // Tooltip toggles
+  document.querySelectorAll('.info-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const wrap    = btn.closest('.info-wrap');
+      const wasOpen = wrap.classList.contains('open');
+      document.querySelectorAll('.info-wrap.open').forEach(w => w.classList.remove('open'));
+      if (!wasOpen) wrap.classList.add('open');
+    });
+  });
+
+  document.addEventListener('click', () => {
+    document.querySelectorAll('.info-wrap.open').forEach(w => w.classList.remove('open'));
+  });
 
   // Mode tabs
   document.querySelectorAll('.tab').forEach(tab => {
     tab.addEventListener('click', () => {
       mode = tab.dataset.mode;
-      document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t === tab));
+      document.querySelectorAll('.tab').forEach(other => other.classList.toggle('active', other === tab));
       document.getElementById('random-controls').classList.toggle('hidden', mode !== 'random');
       document.getElementById('mnemonic-controls').classList.toggle('hidden', mode !== 'mnemonic');
       regenerate();
@@ -236,8 +275,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!pwd) return;
     await navigator.clipboard.writeText(pwd);
     const btn = document.getElementById('copy-btn');
-    btn.textContent = 'Copied!';
-    setTimeout(() => { btn.textContent = 'Copy'; }, 1500);
+    btn.textContent = t('copied');
+    setTimeout(() => { btn.textContent = t('copy'); }, 1500);
   });
 
   regenerate();

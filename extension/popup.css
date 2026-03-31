@@ -250,3 +250,112 @@ header h1 {
 
 .btn-primary:hover  { background: #6d28d9; }
 .btn-primary:active { background: #5b21b6; }
+
+/* ── Header actions (lang + badge) ──────────────────────────────────────────── */
+
+header { align-items: flex-start; }
+
+.header-actions {
+  margin-left: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 5px;
+  flex-shrink: 0;
+}
+
+.lang-toggle {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.lang-btn {
+  background: transparent;
+  border: none;
+  color: #8080a0;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 1px 3px;
+  border-radius: 3px;
+  transition: color 0.15s;
+  letter-spacing: 0.3px;
+}
+
+.lang-btn.active        { color: #a78bfa; }
+.lang-btn:hover:not(.active) { color: #c4c4e0; }
+
+.lang-sep { color: #2a2a45; font-size: 10px; }
+
+.badge-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ── Tooltip ─────────────────────────────────────────────────────────────────── */
+
+.info-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.info-btn {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: #1a1a30;
+  border: 1px solid #2a2a45;
+  color: #8080a0;
+  font-size: 9px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  flex-shrink: 0;
+  transition: color 0.15s, border-color 0.15s;
+  line-height: 1;
+}
+
+.info-btn:hover { color: #a78bfa; border-color: #7c3aed; }
+
+.info-box {
+  display: none;
+  position: absolute;
+  top: calc(100% + 7px);
+  width: 230px;
+  background: #1a1a30;
+  border: 1px solid #2a2a45;
+  border-radius: 8px;
+  padding: 10px 12px;
+  z-index: 100;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.6);
+}
+
+.info-box.left  { right: 0; }
+.info-box.right { left: 0; }
+
+.info-wrap.open .info-box { display: block; }
+
+.info-box strong {
+  display: block;
+  font-size: 11px;
+  color: #a78bfa;
+  margin-bottom: 7px;
+  letter-spacing: 0.2px;
+}
+
+.info-box p {
+  font-size: 11px;
+  color: #b0b0cc;
+  line-height: 1.55;
+  white-space: pre-line;
+}
+
+/* ── Mnemonic info icon in tab bar ───────────────────────────────────────────── */
+
+.mnemonic-info { margin-left: 3px; }
