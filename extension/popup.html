@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Password Generator</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <span class="icon">&#128272;</span>
+      <h1>Password Generator</h1>
+    </header>
+
+    <div class="output">
+      <input type="text" id="password" readonly placeholder="Generating...">
+      <button id="copy-btn" class="btn-secondary">Copy</button>
+    </div>
+
+    <div class="strength-row">
+      <div class="strength-track">
+        <div id="strength-bar" class="strength-bar"></div>
+      </div>
+      <span id="strength-label"></span>
+    </div>
+
+    <div class="length-row">
+      <label for="length">Length</label>
+      <input type="range" id="length" min="4" max="64" value="16">
+      <span id="length-value">16</span>
+    </div>
+
+    <div class="options">
+      <label class="toggle">
+        <input type="checkbox" id="uppercase" class="charset-toggle" checked>
+        <span>Uppercase (A–Z)</span>
+      </label>
+      <label class="toggle">
+        <input type="checkbox" id="lowercase" class="charset-toggle" checked>
+        <span>Lowercase (a–z)</span>
+      </label>
+      <label class="toggle">
+        <input type="checkbox" id="numbers" class="charset-toggle" checked>
+        <span>Numbers (0–9)</span>
+      </label>
+      <label class="toggle">
+        <input type="checkbox" id="symbols" class="charset-toggle" checked>
+        <span>Symbols (!@#$…)</span>
+      </label>
+      <label class="toggle full-width">
+        <input type="checkbox" id="excludeAmbiguous">
+        <span>Exclude ambiguous chars</span>
+      </label>
+    </div>
+
+    <button id="generate-btn" class="btn-primary">&#8635; Generate</button>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>
