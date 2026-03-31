@@ -19,15 +19,17 @@ body {
   gap: 14px;
 }
 
+.hidden { display: none; }
+
+/* ── Header ─────────────────────────────────────────────────────────────── */
+
 header {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-header .icon {
-  font-size: 16px;
-}
+header .icon { font-size: 16px; }
 
 header h1 {
   font-size: 14px;
@@ -36,10 +38,49 @@ header h1 {
   letter-spacing: 0.3px;
 }
 
-.output {
-  display: flex;
-  gap: 8px;
+.badge {
+  margin-left: auto;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 10px;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
 }
+
+.badge.loading  { background: #1e1e35; color: #8080a0; }
+.badge.ok       { background: #14532d; color: #4ade80; }
+.badge.warn     { background: #450a0a; color: #f87171; cursor: help; }
+
+/* ── Mode tabs ───────────────────────────────────────────────────────────── */
+
+.mode-tabs {
+  display: flex;
+  gap: 4px;
+  background: #0d0d1a;
+  padding: 3px;
+  border-radius: 7px;
+}
+
+.tab {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #8080a0;
+  padding: 5px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  transition: background 0.15s, color 0.15s;
+}
+
+.tab.active         { background: #1e1e35; color: #a78bfa; }
+.tab:hover:not(.active) { color: #c4c4e0; }
+
+/* ── Output ──────────────────────────────────────────────────────────────── */
+
+.output { display: flex; gap: 8px; }
 
 .output input {
   flex: 1;
@@ -55,9 +96,7 @@ header h1 {
   transition: border-color 0.15s;
 }
 
-.output input:focus {
-  border-color: #7c3aed;
-}
+.output input:focus { border-color: #7c3aed; }
 
 .btn-secondary {
   background: #1e1e35;
@@ -71,16 +110,11 @@ header h1 {
   transition: background 0.15s, color 0.15s;
 }
 
-.btn-secondary:hover {
-  background: #2a2a45;
-  color: #e2e2f0;
-}
+.btn-secondary:hover { background: #2a2a45; color: #e2e2f0; }
 
-.strength-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
+/* ── Strength bar ────────────────────────────────────────────────────────── */
+
+.strength-row { display: flex; align-items: center; gap: 10px; }
 
 .strength-track {
   flex: 1;
@@ -97,9 +131,9 @@ header h1 {
   transition: width 0.25s ease, background-color 0.25s ease;
 }
 
-.strength-bar.weak       { background: #ef4444; width: 25%; }
-.strength-bar.fair       { background: #f97316; width: 50%; }
-.strength-bar.strong     { background: #eab308; width: 75%; }
+.strength-bar.weak        { background: #ef4444; width: 25%; }
+.strength-bar.fair        { background: #f97316; width: 50%; }
+.strength-bar.strong      { background: #eab308; width: 75%; }
 .strength-bar.very-strong { background: #22c55e; width: 100%; }
 
 #strength-label {
@@ -109,16 +143,14 @@ header h1 {
   text-align: right;
 }
 
-.length-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
+/* ── Sliders ─────────────────────────────────────────────────────────────── */
+
+.length-row { display: flex; align-items: center; gap: 10px; }
 
 .length-row label {
   font-size: 12px;
   color: #8080a0;
-  min-width: 38px;
+  min-width: 42px;
 }
 
 .length-row input[type="range"] {
@@ -128,13 +160,15 @@ header h1 {
   height: 4px;
 }
 
-#length-value {
+#length-value, #word-count-value {
   font-size: 13px;
   font-weight: 600;
   min-width: 22px;
   text-align: right;
   color: #a78bfa;
 }
+
+/* ── Random mode options ─────────────────────────────────────────────────── */
 
 .options {
   display: grid;
@@ -152,9 +186,7 @@ header h1 {
   user-select: none;
 }
 
-.toggle.full-width {
-  grid-column: span 2;
-}
+.toggle.full-width { grid-column: span 2; }
 
 .toggle input[type="checkbox"] {
   accent-color: #7c3aed;
@@ -163,6 +195,44 @@ header h1 {
   height: 13px;
   flex-shrink: 0;
 }
+
+/* ── Mnemonic mode options ───────────────────────────────────────────────── */
+
+.separator-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sep-label {
+  font-size: 12px;
+  color: #8080a0;
+  min-width: 62px;
+}
+
+.sep-options { display: flex; gap: 8px; }
+
+.sep-opt {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  color: #c4c4e0;
+  user-select: none;
+}
+
+.sep-opt input[type="radio"] {
+  accent-color: #7c3aed;
+  cursor: pointer;
+}
+
+.sep-opt span {
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+}
+
+/* ── Generate button ─────────────────────────────────────────────────────── */
 
 .btn-primary {
   background: #7c3aed;
@@ -178,10 +248,5 @@ header h1 {
   letter-spacing: 0.2px;
 }
 
-.btn-primary:hover {
-  background: #6d28d9;
-}
-
-.btn-primary:active {
-  background: #5b21b6;
-}
+.btn-primary:hover  { background: #6d28d9; }
+.btn-primary:active { background: #5b21b6; }

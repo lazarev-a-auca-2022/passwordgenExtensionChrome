@@ -7,10 +7,17 @@
 </head>
 <body>
   <div class="container">
+
     <header>
       <span class="icon">&#128272;</span>
       <h1>Password Generator</h1>
+      <span id="integrity-badge" class="badge loading">checking…</span>
     </header>
+
+    <div class="mode-tabs">
+      <button class="tab active" data-mode="random">Random</button>
+      <button class="tab" data-mode="mnemonic">Mnemonic</button>
+    </div>
 
     <div class="output">
       <input type="text" id="password" readonly placeholder="Generating...">
@@ -24,37 +31,57 @@
       <span id="strength-label"></span>
     </div>
 
-    <div class="length-row">
-      <label for="length">Length</label>
-      <input type="range" id="length" min="4" max="64" value="16">
-      <span id="length-value">16</span>
+    <div id="random-controls">
+      <div class="length-row">
+        <label for="length">Length</label>
+        <input type="range" id="length" min="4" max="64" value="16">
+        <span id="length-value">16</span>
+      </div>
+      <div class="options">
+        <label class="toggle">
+          <input type="checkbox" id="uppercase" class="charset-toggle" checked>
+          <span>Uppercase (A–Z)</span>
+        </label>
+        <label class="toggle">
+          <input type="checkbox" id="lowercase" class="charset-toggle" checked>
+          <span>Lowercase (a–z)</span>
+        </label>
+        <label class="toggle">
+          <input type="checkbox" id="numbers" class="charset-toggle" checked>
+          <span>Numbers (0–9)</span>
+        </label>
+        <label class="toggle">
+          <input type="checkbox" id="symbols" class="charset-toggle" checked>
+          <span>Symbols (!@#$…)</span>
+        </label>
+        <label class="toggle full-width">
+          <input type="checkbox" id="excludeAmbiguous">
+          <span>Exclude ambiguous chars</span>
+        </label>
+      </div>
     </div>
 
-    <div class="options">
-      <label class="toggle">
-        <input type="checkbox" id="uppercase" class="charset-toggle" checked>
-        <span>Uppercase (A–Z)</span>
-      </label>
-      <label class="toggle">
-        <input type="checkbox" id="lowercase" class="charset-toggle" checked>
-        <span>Lowercase (a–z)</span>
-      </label>
-      <label class="toggle">
-        <input type="checkbox" id="numbers" class="charset-toggle" checked>
-        <span>Numbers (0–9)</span>
-      </label>
-      <label class="toggle">
-        <input type="checkbox" id="symbols" class="charset-toggle" checked>
-        <span>Symbols (!@#$…)</span>
-      </label>
-      <label class="toggle full-width">
-        <input type="checkbox" id="excludeAmbiguous">
-        <span>Exclude ambiguous chars</span>
-      </label>
+    <div id="mnemonic-controls" class="hidden">
+      <div class="length-row">
+        <label for="word-count">Words</label>
+        <input type="range" id="word-count" min="3" max="8" value="5">
+        <span id="word-count-value">5</span>
+      </div>
+      <div class="separator-row">
+        <span class="sep-label">Separator</span>
+        <div class="sep-options">
+          <label class="sep-opt"><input type="radio" name="separator" value="-" checked><span>-</span></label>
+          <label class="sep-opt"><input type="radio" name="separator" value="."><span>.</span></label>
+          <label class="sep-opt"><input type="radio" name="separator" value="_"><span>_</span></label>
+          <label class="sep-opt"><input type="radio" name="separator" value=" "><span>space</span></label>
+        </div>
+      </div>
     </div>
 
     <button id="generate-btn" class="btn-primary">&#8635; Generate</button>
+
   </div>
+  <script src="wordlist.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>

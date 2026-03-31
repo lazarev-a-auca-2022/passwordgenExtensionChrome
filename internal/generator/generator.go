@@ -2,6 +2,7 @@ package generator
 
 import (
 	"crypto/rand"
+	"errors"
 	"math/big"
 	"strings"
 )
@@ -59,6 +60,43 @@ func Generate(length int, opts Options) (string, error) {
 		return "", err
 	}
 	return string(result), nil
+}
+
+func GenerateMnemonic(wordCount int, separator string, wordlist []string) (string, error) {
+	if len(wordlist) == 0 {
+		return "", errors.New("wordlist is empty")
+	}
+	words := make([]string, wordCount)
+	for i := range words {
+		idx, err := randInt(len(wordlist))
+		if err != nil {
+			return "", err
+		}
+		words[i] = wordlist[idx]
+	}
+	return strings.Join(words, separator), nil
+}
+
+// VerifyEntropy runs a chi-square uniformity test on crypto/rand output.
+// Returns (passed, chi2_statistic, error).
+// Threshold: df=255, p<0.0001 ≈ 350. A legitimate RNG will almost never exceed this.
+func VerifyEntropy() (bool, float64, error) {
+	const n = 2560
+	buf := make([]byte, n)
+	if _, err := rand.Reader.Read(buf); err != nil {
+		return false, 0, err
+	}
+	var freq [256]float64
+	for _, b := range buf {
+		freq[b]++
+	}
+	expected := float64(n) / 256
+	var chi2 float64
+	for _, f := range freq {
+		d := f - expected
+		chi2 += d * d / expected
+	}
+	return chi2 < 350.0, chi2, nil
 }
 
 func Score(password string) int {
