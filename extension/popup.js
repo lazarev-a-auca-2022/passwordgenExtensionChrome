@@ -273,7 +273,20 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('copy-btn').addEventListener('click', async () => {
     const pwd = document.getElementById('password').value;
     if (!pwd) return;
-    await navigator.clipboard.writeText(pwd);
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(pwd);
+      } else {
+        // Fallback for plain HTTP environments
+        const ta = document.createElement('textarea');
+        ta.value = pwd;
+        ta.style.cssText = 'position:fixed;left:-9999px;top:-9999px;opacity:0';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        try { document.execCommand('copy'); } finally { document.body.removeChild(ta); }
+      }
+    } catch { /* silently ignore copy failures */ }
     const btn = document.getElementById('copy-btn');
     btn.textContent = t('copied');
     setTimeout(() => { btn.textContent = t('copy'); }, 1500);

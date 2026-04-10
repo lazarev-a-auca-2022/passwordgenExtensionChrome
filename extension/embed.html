@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Password Generator</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 13px;
+      background: #12121f;
+      color: #e2e2f0;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 360px;
+      margin: 0 auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .hidden { display: none; }
+
+    /* ── Header ── */
+    header { display: flex; align-items: flex-start; gap: 8px; }
+    header .icon { font-size: 16px; }
+    header h1 {
+      font-size: 14px;
+      font-weight: 600;
+      color: #a78bfa;
+      letter-spacing: 0.3px;
+    }
+    .header-actions {
+      margin-left: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 5px;
+      flex-shrink: 0;
+    }
+    .lang-toggle { display: flex; align-items: center; gap: 2px; }
+    .lang-btn {
+      background: transparent;
+      border: none;
+      color: #8080a0;
+      font-size: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      padding: 1px 3px;
+      border-radius: 3px;
+      transition: color 0.15s;
+      letter-spacing: 0.3px;
+    }
+    .lang-btn.active { color: #a78bfa; }
+    .lang-btn:hover:not(.active) { color: #c4c4e0; }
+    .lang-sep { color: #2a2a45; font-size: 10px; }
+    .badge-row { display: flex; align-items: center; gap: 4px; }
+    .badge {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 10px;
+      letter-spacing: 0.2px;
+      white-space: nowrap;
+    }
+    .badge.loading { background: #1e1e35; color: #8080a0; }
+    .badge.ok      { background: #14532d; color: #4ade80; }
+    .badge.warn    { background: #450a0a; color: #f87171; cursor: help; }
+
+    /* ── Tabs ── */
+    .mode-tabs {
+      display: flex;
+      gap: 4px;
+      background: #0d0d1a;
+      padding: 3px;
+      border-radius: 7px;
+    }
+    .tab {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: #8080a0;
+      padding: 5px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 500;
+      transition: background 0.15s, color 0.15s;
+    }
+    .tab.active { background: #1e1e35; color: #a78bfa; }
+    .tab:hover:not(.active) { color: #c4c4e0; }
+
+    /* ── Output ── */
+    .output { display: flex; gap: 8px; }
+    .output input {
+      flex: 1;
+      min-width: 0;
+      background: #0d0d1a;
+      border: 1px solid #2a2a45;
+      color: #e2e2f0;
+      padding: 8px 10px;
+      border-radius: 6px;
+      font-family: 'Courier New', 'Consolas', monospace;
+      font-size: 12px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .output input:focus { border-color: #7c3aed; }
+    .btn-secondary {
+      background: #1e1e35;
+      border: 1px solid #2a2a45;
+      color: #c4c4e0;
+      padding: 8px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      white-space: nowrap;
+      transition: background 0.15s, color 0.15s;
+    }
+    .btn-secondary:hover { background: #2a2a45; color: #e2e2f0; }
+
+    /* ── Strength bar ── */
+    .strength-row { display: flex; align-items: center; gap: 10px; }
+    .strength-track {
+      flex: 1;
+      height: 5px;
+      background: #1e1e35;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .strength-bar {
+      height: 100%;
+      width: 0;
+      border-radius: 3px;
+      transition: width 0.25s ease, background-color 0.25s ease;
+    }
+    .strength-bar.weak        { background: #ef4444; width: 25%; }
+    .strength-bar.fair        { background: #f97316; width: 50%; }
+    .strength-bar.strong      { background: #eab308; width: 75%; }
+    .strength-bar.very-strong { background: #22c55e; width: 100%; }
+    #strength-label {
+      font-size: 11px;
+      min-width: 68px;
+      color: #8080a0;
+      text-align: right;
+    }
+
+    /* ── Sliders ── */
+    .length-row { display: flex; align-items: center; gap: 10px; }
+    .length-row label { font-size: 12px; color: #8080a0; min-width: 42px; }
+    .length-row input[type="range"] {
+      flex: 1;
+      accent-color: #7c3aed;
+      cursor: pointer;
+      height: 4px;
+    }
+    #length-value, #word-count-value {
+      font-size: 13px;
+      font-weight: 600;
+      min-width: 22px;
+      text-align: right;
+      color: #a78bfa;
+    }
+
+    /* ── Options grid ── */
+    .options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 9px 12px;
+    }
+    .toggle {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      cursor: pointer;
+      font-size: 12px;
+      color: #c4c4e0;
+      user-select: none;
+    }
+    .toggle.full-width { grid-column: span 2; }
+    .toggle input[type="checkbox"] {
+      accent-color: #7c3aed;
+      cursor: pointer;
+      width: 13px;
+      height: 13px;
+      flex-shrink: 0;
+    }
+
+    /* ── Mnemonic options ── */
+    .separator-row { display: flex; align-items: center; gap: 10px; }
+    .sep-label { font-size: 12px; color: #8080a0; min-width: 62px; }
+    .sep-options { display: flex; gap: 8px; }
+    .sep-opt {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      color: #c4c4e0;
+      user-select: none;
+    }
+    .sep-opt input[type="radio"] { accent-color: #7c3aed; cursor: pointer; }
+    .sep-opt span { font-family: 'Courier New', monospace; font-size: 13px; }
+
+    /* ── Generate button ── */
+    .btn-primary {
+      background: #7c3aed;
+      border: none;
+      color: #fff;
+      padding: 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      width: 100%;
+      transition: background 0.15s;
+      letter-spacing: 0.2px;
+    }
+    .btn-primary:hover  { background: #6d28d9; }
+    .btn-primary:active { background: #5b21b6; }
+
+    /* ── Tooltip ── */
+    .info-wrap { position: relative; display: inline-flex; align-items: center; }
+    .info-btn {
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      background: #1a1a30;
+      border: 1px solid #2a2a45;
+      color: #8080a0;
+      font-size: 9px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      flex-shrink: 0;
+      transition: color 0.15s, border-color 0.15s;
+      line-height: 1;
+    }
+    .info-btn:hover { color: #a78bfa; border-color: #7c3aed; }
+    .info-box {
+      display: none;
+      position: absolute;
+      top: calc(100% + 7px);
+      width: 230px;
+      background: #1a1a30;
+      border: 1px solid #2a2a45;
+      border-radius: 8px;
+      padding: 10px 12px;
+      z-index: 100;
+      box-shadow: 0 6px 24px rgba(0,0,0,0.6);
+    }
+    .info-box.left  { right: 0; }
+    .info-box.right { left: 0; }
+    .info-wrap.open .info-box { display: block; }
+    .info-box strong {
+      display: block;
+      font-size: 11px;
+      color: #a78bfa;
+      margin-bottom: 7px;
+      letter-spacing: 0.2px;
+    }
+    .info-box p {
+      font-size: 11px;
+      color: #b0b0cc;
+      line-height: 1.55;
+      white-space: pre-line;
+    }
+    .mnemonic-info { margin-left: 3px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <header>
+      <span class="icon">&#128272;</span>
+      <h1 data-i18n="title">Password Generator</h1>
+      <div class="header-actions">
+        <div class="lang-toggle">
+          <button class="lang-btn active" data-lang="en">EN</button>
+          <span class="lang-sep">|</span>
+          <button class="lang-btn" data-lang="ru">RU</button>
+        </div>
+        <div class="badge-row">
+          <span id="integrity-badge" class="badge loading"></span>
+          <span class="info-wrap">
+            <button class="info-btn" aria-label="About this check">?</button>
+            <div class="info-box left">
+              <strong data-i18n="integrityTitle"></strong>
+              <p data-i18n="integrityBody"></p>
+            </div>
+          </span>
+        </div>
+      </div>
+    </header>
+
+    <div class="mode-tabs">
+      <button class="tab active" data-mode="random" data-i18n="tabRandom">Random</button>
+      <button class="tab" data-mode="mnemonic" data-i18n="tabMnemonic">Mnemonic</button>
+      <span class="info-wrap mnemonic-info">
+        <button class="info-btn" aria-label="About mnemonic passwords">?</button>
+        <div class="info-box left">
+          <strong data-i18n="mnemonicTitle"></strong>
+          <p data-i18n="mnemonicBody"></p>
+        </div>
+      </span>
+    </div>
+
+    <div class="output">
+      <input type="text" id="password" readonly placeholder="Generating...">
+      <button id="copy-btn" class="btn-secondary">Copy</button>
+    </div>
+
+    <div class="strength-row">
+      <div class="strength-track">
+        <div id="strength-bar" class="strength-bar"></div>
+      </div>
+      <span id="strength-label"></span>
+    </div>
+
+    <div id="random-controls">
+      <div class="length-row">
+        <label for="length" data-i18n="lengthLabel">Length</label>
+        <input type="range" id="length" min="4" max="64" value="16">
+        <span id="length-value">16</span>
+      </div>
+      <div class="options">
+        <label class="toggle">
+          <input type="checkbox" id="uppercase" class="charset-toggle" checked>
+          <span data-i18n="uppercase">Uppercase (A&#x2013;Z)</span>
+        </label>
+        <label class="toggle">
+          <input type="checkbox" id="lowercase" class="charset-toggle" checked>
+          <span data-i18n="lowercase">Lowercase (a&#x2013;z)</span>
+        </label>
+        <label class="toggle">
+          <input type="checkbox" id="numbers" class="charset-toggle" checked>
+          <span data-i18n="numbers">Numbers (0&#x2013;9)</span>
+        </label>
+        <label class="toggle">
+          <input type="checkbox" id="symbols" class="charset-toggle" checked>
+          <span data-i18n="symbols">Symbols (!@#$&#x2026;)</span>
+        </label>
+        <label class="toggle full-width">
+          <input type="checkbox" id="excludeAmbiguous">
+          <span data-i18n="excludeAmbiguous">Exclude ambiguous chars</span>
+        </label>
+      </div>
+    </div>
+
+    <div id="mnemonic-controls" class="hidden">
+      <div class="length-row">
+        <label for="word-count" data-i18n="wordsLabel">Words</label>
+        <input type="range" id="word-count" min="3" max="8" value="5">
+        <span id="word-count-value">5</span>
+      </div>
+      <div class="separator-row">
+        <span class="sep-label" data-i18n="separatorLabel">Separator</span>
+        <div class="sep-options">
+          <label class="sep-opt"><input type="radio" name="separator" value="-" checked><span>-</span></label>
+          <label class="sep-opt"><input type="radio" name="separator" value="."><span>.</span></label>
+          <label class="sep-opt"><input type="radio" name="separator" value="_"><span>_</span></label>
+          <label class="sep-opt"><input type="radio" name="separator" value=" "><span>space</span></label>
+        </div>
+      </div>
+    </div>
+
+    <button id="generate-btn" class="btn-primary" data-i18n="generate">&#8635; Generate</button>
+
+  </div>
+  <script>
+  'use strict';
+
+  // ── Wordlist (300 words, ~8.2 bits/word) ─────────────────────────────────────
+  const WORDLIST = [
+    // Animals (40)
+    'wolf','bear','eagle','lion','shark','whale','horse','snake','hawk','deer',
+    'frog','crow','dove','fox','owl','seal','duck','fish','bee','ant',
+    'rabbit','parrot','zebra','monkey','tiger','panda','koala','moose','bison','crane',
+    'lynx','raven','pike','eel','yak','ibis','viper','stag','rook','moth',
+    // Nature (50)
+    'storm','cloud','river','ocean','forest','desert','mountain','valley','island','fire',
+    'snow','rain','wind','earth','stone','sand','grass','leaf','tree','flower',
+    'lake','field','hill','cave','sky','sun','moon','star','wave','tide',
+    'frost','thunder','mist','fog','dawn','dusk','spring','summer','autumn','winter',
+    'coast','cliff','beach','marsh','ridge','slope','creek','pond','dune','reef',
+    // Adjectives (40)
+    'blue','red','green','black','white','golden','silver','bright','dark','swift',
+    'brave','bold','calm','cool','wild','sharp','deep','wide','tall','small',
+    'round','rough','smooth','soft','hard','fresh','clean','clear','pure','strong',
+    'old','new','fast','slow','loud','quiet','young','long','short','heavy',
+    // Verbs (50)
+    'run','jump','fly','swim','climb','build','break','catch','chase','dive',
+    'draw','dream','drive','fall','fight','flow','force','forge','grab','grow',
+    'guard','guide','hunt','keep','leap','lift','move','open','push','reach',
+    'rise','roll','rush','sail','save','seek','shake','shape','shine','shoot',
+    'skip','slide','spin','stand','stay','swing','throw','trust','turn','walk',
+    // Objects (50)
+    'door','wall','key','lock','path','road','bridge','tower','castle','sword',
+    'shield','book','map','sign','mask','ring','rope','ship','bolt','chain',
+    'blade','crown','gate','helm','vault','bell','bowl','brush','cage','cart',
+    'coin','cord','cup','dart','desk','drum','fence','flag','flask','gem',
+    'glove','hammer','jar','lamp','lens','nail','net','pan','plate','pot',
+    // Technology (30)
+    'byte','code','core','data','disk','file','hash','link','loop','mesh',
+    'node','pipe','port','queue','root','scan','seed','sync','tag','thread',
+    'wire','block','cache','clock','fork','frame','grid','heap','host','shell',
+    // Food / Plants (30)
+    'bread','wine','salt','sugar','honey','milk','rice','bean','corn','pie',
+    'cake','jam','tea','oil','herb','lime','mint','sage','basil','cream',
+    'grape','lemon','maple','melon','olive','peach','plum','wheat','apple','pine',
+    // Misc (10)
+    'axe','bow','spear','staff','scroll','lantern','glyph','rune','spark','flare',
+  ];
+
+  // ── i18n ─────────────────────────────────────────────────────────────────────
+  const STRINGS = {
+    en: {
+      title:             'Password Generator',
+      tabRandom:         'Random',
+      tabMnemonic:       'Mnemonic',
+      copy:              'Copy',
+      copied:            'Copied!',
+      generate:          '\u21BB Generate',
+      lengthLabel:       'Length',
+      wordsLabel:        'Words',
+      separatorLabel:    'Separator',
+      uppercase:         'Uppercase (A\u2013Z)',
+      lowercase:         'Lowercase (a\u2013z)',
+      numbers:           'Numbers (0\u20139)',
+      symbols:           'Symbols (!@#$\u2026)',
+      excludeAmbiguous:  'Exclude ambiguous chars',
+      strengthWeak:      'Weak',
+      strengthFair:      'Fair',
+      strengthStrong:    'Strong',
+      strengthVeryStrong:'Very Strong',
+      badgeChecking:     'checking\u2026',
+      badgeVerified:     '\u25CF Verified',
+      badgeWarning:      '\u26A0 Warning',
+      integrityTitle:    'Cryptographic Integrity Check',
+      integrityBody:     '1. Verifies crypto.getRandomValues is the browser\'s native function \u2014 not monkey-patched by an extension or malicious script.\n\n2. Chi-square uniformity test on 2560 random bytes (256 buckets, expected 10 each).\n   Threshold: \u03C7\u00B2 < 350 (df=255, p < 0.0001).\n\nA real RNG will almost never fail this. A tampered or predictable one almost certainly will.',
+      mnemonicTitle:     'Mnemonic Passwords',
+      mnemonicBody:      'A sequence of random words \u2014 easier to remember than a random character string.\n\nExample:  storm-brave-forge-eagle-vault\n\nWord pool: 300 words \u2248 8.2 bits each\n3 words \u2248 25 bits  \u00B7  5 words \u2248 41 bits\n6 words \u2248 49 bits  \u00B7  8 words \u2248 66 bits',
+    },
+    ru: {
+      title:             '\u0413\u0435\u043D\u0435\u0440\u0430\u0442\u043E\u0440 \u043F\u0430\u0440\u043E\u043B\u0435\u0439',
+      tabRandom:         '\u0421\u043B\u0443\u0447\u0430\u0439\u043D\u044B\u0439',
+      tabMnemonic:       '\u041C\u043D\u0435\u043C\u043E\u043D\u0438\u0447\u0435\u0441\u043A\u0438\u0439',
+      copy:              '\u041A\u043E\u043F\u0438\u0440\u043E\u0432\u0430\u0442\u044C',
+      copied:            '\u0421\u043A\u043E\u043F\u0438\u0440\u043E\u0432\u0430\u043D\u043E!',
+      generate:          '\u21BB \u0421\u0433\u0435\u043D\u0435\u0440\u0438\u0440\u043E\u0432\u0430\u0442\u044C',
+      lengthLabel:       '\u0414\u043B\u0438\u043D\u0430',
+      wordsLabel:        '\u0421\u043B\u043E\u0432\u0430',
+      separatorLabel:    '\u0420\u0430\u0437\u0434\u0435\u043B\u0438\u0442\u0435\u043B\u044C',
+      uppercase:         '\u0417\u0430\u0433\u043B\u0430\u0432\u043D\u044B\u0435 (A\u2013Z)',
+      lowercase:         '\u0421\u0442\u0440\u043E\u0447\u043D\u044B\u0435 (a\u2013z)',
+      numbers:           '\u0426\u0438\u0444\u0440\u044B (0\u20139)',
+      symbols:           '\u0421\u0438\u043C\u0432\u043E\u043B\u044B (!@#$\u2026)',
+      excludeAmbiguous:  '\u0418\u0441\u043A\u043B\u044E\u0447\u0438\u0442\u044C \u043D\u0435\u043E\u0434\u043D\u043E\u0437\u043D\u0430\u0447\u043D\u044B\u0435',
+      strengthWeak:      '\u0421\u043B\u0430\u0431\u044B\u0439',
+      strengthFair:      '\u0421\u0440\u0435\u0434\u043D\u0438\u0439',
+      strengthStrong:    '\u0421\u0438\u043B\u044C\u043D\u044B\u0439',
+      strengthVeryStrong:'\u041E\u0447\u0435\u043D\u044C \u0441\u0438\u043B\u044C\u043D\u044B\u0439',
+      badgeChecking:     '\u043F\u0440\u043E\u0432\u0435\u0440\u043A\u0430\u2026',
+      badgeVerified:     '\u25CF \u041F\u0440\u043E\u0432\u0435\u0440\u0435\u043D\u043E',
+      badgeWarning:      '\u26A0 \u0412\u043D\u0438\u043C\u0430\u043D\u0438\u0435',
+      integrityTitle:    '\u041A\u0440\u0438\u043F\u0442\u043E\u0433\u0440\u0430\u0444\u0438\u0447\u0435\u0441\u043A\u0430\u044F \u043F\u0440\u043E\u0432\u0435\u0440\u043A\u0430',
+      integrityBody:     '1. \u041F\u0440\u043E\u0432\u0435\u0440\u044F\u0435\u0442, \u0447\u0442\u043E crypto.getRandomValues \u2014 \u043D\u0430\u0442\u0438\u0432\u043D\u0430\u044F \u0444\u0443\u043D\u043A\u0446\u0438\u044F \u0431\u0440\u0430\u0443\u0437\u0435\u0440\u0430, \u0430 \u043D\u0435 \u043F\u0435\u0440\u0435\u0445\u0432\u0430\u0447\u0435\u043D\u0430 \u0440\u0430\u0448\u0438\u0440\u0435\u043D\u0438\u0435\u043C \u0438\u043B\u0438 \u0432\u0440\u0435\u0434\u043E\u043D\u043E\u0441\u043D\u044B\u043C \u0441\u043A\u0440\u0438\u043F\u0442\u043E\u043C.\n\n2. \u0422\u0435\u0441\u0442 \u0445\u0438-\u043A\u0432\u0430\u0434\u0440\u0430\u0442 \u043D\u0430 2560 \u0441\u043B\u0443\u0447\u0430\u0439\u043D\u044B\u0445 \u0431\u0430\u0439\u0442\u0430\u0445 (256 \u043A\u043E\u0440\u0437\u0438\u043D, \u043E\u0436\u0438\u0434\u0430\u0435\u0442\u0441\u044F 10 \u0432 \u043A\u0430\u0436\u0434\u043E\u0439).\n   \u041F\u043E\u0440\u043E\u0433: \u03C7\u00B2 < 350 (df=255, p < 0.0001).\n\n\u041D\u0430\u0441\u0442\u043E\u044F\u0449\u0438\u0439 \u0413\u0421\u0427 \u043F\u043E\u0447\u0442\u0438 \u043D\u0438\u043A\u043E\u0433\u0434\u0430 \u043D\u0435 \u043F\u0440\u043E\u0432\u0430\u043B\u0438\u0442 \u044D\u0442\u043E\u0442 \u0442\u0435\u0441\u0442. \u041F\u043E\u0434\u043C\u0435\u043D\u0451\u043D\u043D\u044B\u0439 \u0438\u043B\u0438 \u043F\u0440\u0435\u0434\u0441\u043A\u0430\u0437\u0443\u0435\u043C\u044B\u0439 \u2014 \u043F\u043E\u0447\u0442\u0438 \u043D\u0430\u0432\u0435\u0440\u043D\u044F\u043A\u0430 \u043F\u0440\u043E\u0432\u0430\u043B\u0438\u0442.',
+      mnemonicTitle:     '\u041C\u043D\u0435\u043C\u043E\u043D\u0438\u0447\u0435\u0441\u043A\u0438\u0435 \u043F\u0430\u0440\u043E\u043B\u0438',
+      mnemonicBody:      '\u041F\u043E\u0441\u043B\u0435\u0434\u043E\u0432\u0430\u0442\u0435\u043B\u044C\u043D\u043E\u0441\u0442\u044C \u0441\u043B\u0443\u0447\u0430\u0439\u043D\u044B\u0445 \u0441\u043B\u043E\u0432 \u2014 \u043F\u0440\u043E\u0449\u0435 \u0437\u0430\u043F\u043E\u043C\u043D\u0438\u0442\u044C, \u0447\u0435\u043C \u0441\u043B\u0443\u0447\u0430\u0439\u043D\u0443\u044E \u0441\u0442\u0440\u043E\u043A\u0443 \u0441\u0438\u043C\u0432\u043E\u043B\u043E\u0432.\n\n\u041F\u0440\u0438\u043C\u0435\u0440:  storm-brave-forge-eagle-vault\n\n\u0421\u043B\u043E\u0432\u0430\u0440\u044C: 300 \u0441\u043B\u043E\u0432 \u2248 8.2 \u0431\u0438\u0442\u0430/\u0441\u043B\u043E\u0432\u043E\n3 \u0441\u043B\u043E\u0432\u0430 \u2248 25 \u0431\u0438\u0442  \u00B7  5 \u0441\u043B\u043E\u0432 \u2248 41 \u0431\u0438\u0442\n6 \u0441\u043B\u043E\u0432 \u2248 49 \u0431\u0438\u0442  \u00B7  8 \u0441\u043B\u043E\u0432 \u2248 66 \u0431\u0438\u0442',
+    },
+  };
+
+  // localStorage is unavailable in some sandboxed iframes — wrap all access
+  function safeGetStorage(key) { try { return localStorage.getItem(key); } catch { return null; } }
+  function safeSetStorage(key, val) { try { localStorage.setItem(key, val); } catch {} }
+
+  let lang = safeGetStorage('pgLang') || 'en';
+
+  function t(key) { return STRINGS[lang]?.[key] ?? STRINGS.en[key] ?? key; }
+
+  function applyLang() {
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      el.textContent = t(el.dataset.i18n);
+    });
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.lang === lang);
+    });
+  }
+
+  function setLang(newLang) {
+    if (!STRINGS[newLang]) return;
+    lang = newLang;
+    safeSetStorage('pgLang', lang);
+  }
+
+  // ── Integrity check ───────────────────────────────────────────────────────────
+  const UPPERCASE = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const LOWERCASE = 'abcdefghijklmnopqrstuvwxyz';
+  const NUMBERS   = '0123456789';
+  const SYMBOLS   = '!@#$%^&*()-_=+[]{}|;:,.<>?';
+  const AMBIGUOUS = new Set(['0', 'O', 'l', '1', 'I']);
+  const STRENGTH_CLASS = ['', 'weak', 'fair', 'strong', 'very-strong'];
+
+  let mode                = 'random';
+  let lastIntegrityResult = null;
+  let lastStrengthScore   = 0;
+
+  function checkCryptoIntegrity() {
+    try {
+      const src = Function.prototype.toString.call(crypto.getRandomValues);
+      if (!src.includes('[native code]')) {
+        return { ok: false, reason: 'crypto.getRandomValues has been overridden' };
+      }
+    } catch {
+      return { ok: false, reason: 'RNG inspection failed' };
+    }
+    const n = 2560;
+    const sample = new Uint8Array(n);
+    crypto.getRandomValues(sample);
+    const freq = new Array(256).fill(0);
+    for (const b of sample) freq[b]++;
+    const expected = n / 256;
+    const chi2 = freq.reduce((sum, f) => sum + (f - expected) ** 2 / expected, 0);
+    return chi2 < 350
+      ? { ok: true,  chi2: chi2.toFixed(1) }
+      : { ok: false, reason: `RNG failed uniformity test (\u03C7\u00B2=${chi2.toFixed(0)})` };
+  }
+
+  function renderIntegrityBadge(result) {
+    lastIntegrityResult = result;
+    const badge = document.getElementById('integrity-badge');
+    if (result.ok) {
+      badge.textContent = t('badgeVerified');
+      badge.className   = 'badge ok';
+      badge.title       = `\u03C7\u00B2 = ${result.chi2}`;
+    } else {
+      badge.textContent = t('badgeWarning');
+      badge.className   = 'badge warn';
+      badge.title       = result.reason;
+    }
+  }
+
+  // ── JS password generators ────────────────────────────────────────────────────
+  function buildCharsets(opts) {
+    const filt = s => opts.excludeAmbiguous ? [...s].filter(c => !AMBIGUOUS.has(c)).join('') : s;
+    return [
+      opts.uppercase ? filt(UPPERCASE) : '',
+      opts.lowercase ? filt(LOWERCASE) : '',
+      opts.numbers   ? filt(NUMBERS)   : '',
+      opts.symbols   ? filt(SYMBOLS)   : '',
+    ].filter(s => s.length > 0);
+  }
+
+  function jsGenerate(length, opts) {
+    const charsets = buildCharsets(opts);
+    if (charsets.length === 0) charsets.push(LOWERCASE);
+    const full = charsets.join('');
+    const rnd = new Uint32Array(length);
+    crypto.getRandomValues(rnd);
+    const result = Array.from(rnd, n => full[n % full.length]);
+    charsets.forEach((cs, i) => {
+      if (i >= length) return;
+      const r = new Uint32Array(2);
+      crypto.getRandomValues(r);
+      result[r[0] % length] = cs[r[1] % cs.length];
+    });
+    for (let i = result.length - 1; i > 0; i--) {
+      const r = new Uint32Array(1);
+      crypto.getRandomValues(r);
+      const j = r[0] % (i + 1);
+      [result[i], result[j]] = [result[j], result[i]];
+    }
+    return result.join('');
+  }
+
+  function jsScore(password) {
+    if (!password) return 0;
+    let s = 0;
+    if (/[A-Z]/.test(password))        s++;
+    if (/[a-z]/.test(password))        s++;
+    if (/[0-9]/.test(password))        s++;
+    if (/[^A-Za-z0-9]/.test(password)) s++;
+    if (password.length >= 12)         s++;
+    if (password.length >= 20)         s++;
+    if (s <= 1) return 1;
+    if (s <= 3) return 2;
+    if (s <= 4) return 3;
+    return 4;
+  }
+
+  function jsGenerateMnemonic(wordCount, separator) {
+    const rnd = new Uint32Array(wordCount);
+    crypto.getRandomValues(rnd);
+    return Array.from(rnd, n => WORDLIST[n % WORDLIST.length]).join(separator);
+  }
+
+  function scoreMnemonic(wordCount) {
+    const bits = wordCount * Math.log2(WORDLIST.length);
+    if (bits < 35) return 1;
+    if (bits < 45) return 2;
+    if (bits < 60) return 3;
+    return 4;
+  }
+
+  // ── WASM loader (optional — JS fallbacks remain if WASM is absent) ────────────
+  let generate         = jsGenerate;
+  let score            = jsScore;
+  let generateMnemonic = jsGenerateMnemonic;
+
+  async function loadWasm() {
+    try {
+      await new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = 'wasm_exec.js';
+        s.onload = resolve;
+        s.onerror = reject;
+        document.head.appendChild(s);
+      });
+      const go     = new Go();
+      const result = await WebAssembly.instantiateStreaming(fetch('main.wasm'), go.importObject);
+      go.run(result.instance);
+      generate         = (len, opts)  => window.wasmGeneratePassword(len, opts);
+      score            = pwd          => window.wasmScoreStrength(pwd);
+      generateMnemonic = (count, sep) => window.wasmGenerateMnemonic(count, sep, WORDLIST);
+    } catch {
+      // WASM unavailable — JS implementations remain active
+    }
+  }
+
+  // ── Clipboard (with execCommand fallback for plain HTTP) ─────────────────────
+  async function copyToClipboard(text) {
+    if (navigator.clipboard && window.isSecureContext) {
+      return navigator.clipboard.writeText(text);
+    }
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.cssText = 'position:fixed;left:-9999px;top:-9999px;opacity:0';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    try { document.execCommand('copy'); } finally { document.body.removeChild(ta); }
+  }
+
+  // ── UI helpers ────────────────────────────────────────────────────────────────
+  function getRandomOpts() {
+    return {
+      uppercase:        document.getElementById('uppercase').checked,
+      lowercase:        document.getElementById('lowercase').checked,
+      numbers:          document.getElementById('numbers').checked,
+      symbols:          document.getElementById('symbols').checked,
+      excludeAmbiguous: document.getElementById('excludeAmbiguous').checked,
+    };
+  }
+
+  function getSeparator() {
+    return document.querySelector('input[name="separator"]:checked')?.value ?? '-';
+  }
+
+  function getStrengthLabel(s) {
+    return [t('strengthWeak'), t('strengthFair'), t('strengthStrong'), t('strengthVeryStrong')][s - 1] ?? '';
+  }
+
+  function render(password, strengthScore) {
+    lastStrengthScore = strengthScore;
+    document.getElementById('password').value             = password;
+    document.getElementById('strength-bar').className     = 'strength-bar ' + (STRENGTH_CLASS[strengthScore] ?? '');
+    document.getElementById('strength-label').textContent = getStrengthLabel(strengthScore);
+  }
+
+  function regenerate() {
+    if (mode === 'random') {
+      const length   = parseInt(document.getElementById('length').value, 10);
+      const password = generate(length, getRandomOpts());
+      render(password, score(password));
+    } else {
+      const count    = parseInt(document.getElementById('word-count').value, 10);
+      const password = generateMnemonic(count, getSeparator());
+      render(password, scoreMnemonic(count));
+    }
+  }
+
+  function rerenderDynamic() {
+    applyLang();
+    if (lastIntegrityResult) renderIntegrityBadge(lastIntegrityResult);
+    else document.getElementById('integrity-badge').textContent = t('badgeChecking');
+    document.getElementById('strength-label').textContent = getStrengthLabel(lastStrengthScore);
+    document.getElementById('copy-btn').textContent = t('copy');
+  }
+
+  // ── Bootstrap ─────────────────────────────────────────────────────────────────
+  document.addEventListener('DOMContentLoaded', async () => {
+    await loadWasm();
+
+    applyLang();
+    document.getElementById('integrity-badge').textContent = t('badgeChecking');
+    renderIntegrityBadge(checkCryptoIntegrity());
+
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        setLang(btn.dataset.lang);
+        rerenderDynamic();
+      });
+    });
+
+    document.querySelectorAll('.info-btn').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        const wrap    = btn.closest('.info-wrap');
+        const wasOpen = wrap.classList.contains('open');
+        document.querySelectorAll('.info-wrap.open').forEach(w => w.classList.remove('open'));
+        if (!wasOpen) wrap.classList.add('open');
+      });
+    });
+
+    document.addEventListener('click', () => {
+      document.querySelectorAll('.info-wrap.open').forEach(w => w.classList.remove('open'));
+    });
+
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        mode = tab.dataset.mode;
+        document.querySelectorAll('.tab').forEach(other => other.classList.toggle('active', other === tab));
+        document.getElementById('random-controls').classList.toggle('hidden', mode !== 'random');
+        document.getElementById('mnemonic-controls').classList.toggle('hidden', mode !== 'mnemonic');
+        regenerate();
+      });
+    });
+
+    const slider = document.getElementById('length');
+    slider.addEventListener('input', () => {
+      document.getElementById('length-value').textContent = slider.value;
+      regenerate();
+    });
+
+    const wordSlider = document.getElementById('word-count');
+    wordSlider.addEventListener('input', () => {
+      document.getElementById('word-count-value').textContent = wordSlider.value;
+      regenerate();
+    });
+
+    document.querySelectorAll('input[name="separator"]').forEach(r => {
+      r.addEventListener('change', regenerate);
+    });
+
+    document.querySelectorAll('.charset-toggle').forEach(cb => {
+      cb.addEventListener('change', () => {
+        const anyChecked = [...document.querySelectorAll('.charset-toggle')].some(c => c.checked);
+        if (!anyChecked) { cb.checked = true; return; }
+        regenerate();
+      });
+    });
+
+    document.getElementById('excludeAmbiguous').addEventListener('change', regenerate);
+    document.getElementById('generate-btn').addEventListener('click', regenerate);
+
+    document.getElementById('copy-btn').addEventListener('click', async () => {
+      const pwd = document.getElementById('password').value;
+      if (!pwd) return;
+      try { await copyToClipboard(pwd); } catch { /* silently ignore */ }
+      const btn = document.getElementById('copy-btn');
+      btn.textContent = t('copied');
+      setTimeout(() => { btn.textContent = t('copy'); }, 1500);
+    });
+
+    regenerate();
+  });
+  </script>
+</body>
+</html>
