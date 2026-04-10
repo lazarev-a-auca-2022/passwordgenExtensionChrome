@@ -266,8 +266,11 @@ header { align-items: flex-start; }
 
 .lang-toggle {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
+  justify-content: flex-end;
   gap: 2px;
+  max-width: 140px;
 }
 
 .lang-btn {
